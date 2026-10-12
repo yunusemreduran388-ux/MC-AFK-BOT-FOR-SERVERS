@@ -19,7 +19,7 @@ function listen(server, port, tries = 10) {
     const onListening = () => { server.off('error', onError); resolve(port); };
     server.once('error', onError);
     server.once('listening', onListening);
-    // Sadece bu bilgisayardan erişim (güvenlik)
+    
     server.listen(port, '127.0.0.1');
   });
 }
@@ -28,7 +28,7 @@ async function start({ port = 3000, dataDir = path.join(__dirname, 'data') } = {
   fs.mkdirSync(dataDir, { recursive: true });
   const file = path.join(dataDir, 'bots.json');
 
-  // ---- Kalıcı kayıt ----
+ 
   let bots = [];
   try { bots = JSON.parse(fs.readFileSync(file, 'utf8')); } catch { /* ilk çalıştırma */ }
   const save = () => {
@@ -37,7 +37,7 @@ async function start({ port = 3000, dataDir = path.join(__dirname, 'data') } = {
     fs.renameSync(tmp, file);
   };
 
-  // ---- Çalışma durumu (diske yazılmaz) ----
+ 
   const runtime = new Map();
   const rt = (id) => {
     if (!runtime.has(id)) {
@@ -105,7 +105,7 @@ async function start({ port = 3000, dataDir = path.join(__dirname, 'data') } = {
       }, 15000);
     });
 
-    // Sunucu "kayıt ol" derse register, "giriş yap" derse login (5 sn'de en fazla bir kez)
+   
     bot.on('messagestr', (message) => {
       if (!b.password || Date.now() - r.lastAuth < 5000) return;
       const m = message.toLowerCase();
@@ -204,7 +204,7 @@ async function start({ port = 3000, dataDir = path.join(__dirname, 'data') } = {
     });
   });
 
-  // Çalışma sürelerini tek sayaçla yayınla
+  
   const tick = setInterval(() => {
     const uptimes = {};
     for (const b of bots) {
@@ -217,7 +217,7 @@ async function start({ port = 3000, dataDir = path.join(__dirname, 'data') } = {
   const actualPort = await listen(server, port);
   console.log(`[SUNUCU] AFK Panel aktif: http://127.0.0.1:${actualPort}`);
 
-  // Açık olarak kaydedilen sunucuları otomatik başlat (biraz aralıklı)
+  
   bots.filter((b) => b.enabled).forEach((b, i) => setTimeout(() => connect(b), i * 1500));
 
   return {
