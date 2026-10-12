@@ -1,0 +1,36 @@
+{
+  "name": "mc-afk-panel",
+  "version": "3.0.0",
+  "description": "Minecraft AFK Yönetim Paneli",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "web": "node server.js",
+    "build": "electron-builder --linux --win --x64"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "mineflayer": "^4.23.0",
+    "socket.io": "^4.7.5"
+  },
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.emrredrn.mcafkpanel",
+    "productName": "MC AFK Panel",
+    "files": [
+      "main.js",
+      "server.js",
+      "public/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": ["nsis", "portable"]
+    },
+    "linux": {
+      "category": "Game"
+    }
+  }
+}

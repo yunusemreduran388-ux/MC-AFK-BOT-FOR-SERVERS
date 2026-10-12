@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Minecraft AFK Panel</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    html, body { height: 100%; }
+    body { background: #121214; color: #e1e1e6; display: flex; flex-direction: column; }
+    header { padding: 16px 20px; border-bottom: 1px solid #29292e; display: flex; justify-content: space-between; align-items: center; }
+    h1 { font-size: 20px; color: #00b37e; }
+    #conn { font-size: 13px; color: #8d8d99; }
+    #conn.ok { color: #00b37e; }
+    main { flex: 1; overflow-y: auto; padding: 20px; display: grid; grid-template-columns: 340px 1fr; gap: 20px; align-items: start; }
+    .card { background: #202024; border: 1px solid #29292e; border-radius: 8px; padding: 18px; }
+    .card h2 { font-size: 15px; margin-bottom: 14px; color: #a8a8b3; }
+    .form-group { margin-bottom: 12px; }
+    label { display: block; font-size: 13px; margin-bottom: 5px; color: #c4c4cc; }
+    input, select { width: 100%; padding: 10px; background: #121214; border: 1px solid #323238; border-radius: 6px; color: #fff; font-size: 14px; }
+    input:focus, select:focus, button:focus-visible { outline: 2px solid #00b37e; outline-offset: 1px; }
+    button { padding: 10px 14px; background: #00b37e; border: none; border-radius: 6px; color: #fff; font-weight: 600; cursor: pointer; }
+    button:hover { background: #00875f; }
+    .full { width: 100%; margin-top: 4px; }
+    .btn-danger { background: #c53030; }
+    .btn-danger:hover { background: #9b2c2c; }
+    .btn-ghost { background: transparent; border: 1px solid #323238; color: #c4c4cc; }
+    .btn-ghost:hover { background: #29292e; }
+    #bots { display: flex; flex-direction: column; gap: 14px; }
+    .bot-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .bot-title { font-weight: 600; color: #fff; }
+    .bot-title small { color: #8d8d99; font-weight: 400; margin-left: 6px; }
+    .head-right { display: flex; align-items: center; gap: 12px; }
+    .badge { font-size: 11px; padding: 3px 8px; border-radius: 4px; background: #4a4a52; color: #fff; white-space: nowrap; }
+    .badge.online { background: #2f855a; }
+    .badge.wait { background: #b7791f; }
+    .bot-meta { font-size: 13px; color: #8d8d99; margin: 8px 0; display: flex; justify-content: space-between; }
+    .console { background: #09090a; border: 1px solid #1a1a1e; border-radius: 6px; padding: 10px; height: 120px; overflow-y: auto; font: 11px/1.5 monospace; color: #00ff88; white-space: pre-wrap; }
+    .bot-actions { margin-top: 10px; display: flex; justify-content: flex-end; }
+    /* Aç/kapa anahtarı */
+    .switch { position: relative; width: 44px; height: 24px; flex: none; }
+    .switch input { opacity: 0; width: 100%; height: 100%; position: absolute; cursor: pointer; z-index: 1; }
+    .track { position: absolute; inset: 0; background: #4a4a52; border-radius: 24px; transition: background .2s; }
+    .track::after { content: ''; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; background: #fff; border-radius: 50%; transition: transform .2s; }
+    .switch input:checked + .track { background: #00b37e; }
+    .switch input:checked + .track::after { transform: translateX(20px); }
+    .switch input:focus-visible + .track { outline: 2px solid #00b37e; outline-offset: 2px; }
+    .empty { color: #8d8d99; font-size: 14px; text-align: center; margin-top: 40px; }
+    footer { padding: 10px 20px; border-top: 1px solid #29292e; display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #8d8d99; }
+    #toast { color: #fc8181; }
+    @media (max-width: 800px) { main { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Minecraft AFK Yönetim Paneli</h1>
+    <span id="conn">Bağlanıyor...</span>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Yeni sunucu ekle</h2>
+      <form id="add-form">
+        <div class="form-group"><label for="host">Sunucu IP / Host</label><input id="host" required placeholder="ornek.aternos.me"></div>
+        <div class="form-group"><label for="port">Port</label><input id="port" type="number" value="25565" required></div>
+        <div class="form-group"><label for="username">Karakter ismi</label><input id="username" required pattern="\w{3,16}" placeholder="afkbot_01"></div>
+        <div class="form-group"><label for="password">Şifre (opsiyonel)</label><input id="password" type="password" autocomplete="off"></div>
+        <div class="form-group">
+          <label for="actionType">Anti-AFK modu</label>
+          <select id="actionType">
+            <option value="jump">Hafif zıplama + dönme</option>
+            <option value="hit">Vurma (sol tık) + dönme</option>
+          </select>
+        </div>
+        <button class="full" type="submit">Ekle ve başlat</button>
+        <p id="toast" role="alert"></p>
+      </form>
+    </section>
+
+    <section id="bots"><div class="empty" id="empty">Henüz sunucu yok. Soldan ekleyebilirsin; kapatıp açsan da burada kalır.</div></section>
+  </main>
+
+  <footer>
+    <span id="where"></span>
+    <button class="btn-ghost" id="open-web" type="button">Web'de aç</button>
+  </footer>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const $ = (id) => document.getElementById(id);
+    const botsEl = $('bots'), emptyEl = $('empty');
+    const fmt = (s) => { const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60); return (h ? h + 'sa ' : '') + (h || m ? m + 'dk ' : '') + (s % 60) + 's'; };
+
+    function card(b) {
+      let el = $('card-' + b.id);
+      if (el) return el;
+      el = document.createElement('article');
+      el.className = 'card'; el.id = 'card-' + b.id;
+      el.innerHTML = `
+        <div class="bot-head">
+          <div class="bot-title"><span class="name"></span><small class="addr"></small></div>
+          <div class="head-right">
+            <span class="badge"></span>
+            <label class="switch" title="Aç / kapat"><input type="checkbox" role="switch" aria-label="Botu aç veya kapat"><span class="track"></span></label>
+          </div>
+        </div>
+        <div class="bot-meta"><span>Çalışma süresi: <strong class="uptime">0s</strong></span><span class="mode"></span></div>
+        <div class="console"></div>
+        <div class="bot-actions"><button class="btn-danger remove" type="button">Sil</button></div>`;
+      el.querySelector('input').addEventListener('change', (e) => socket.emit('bot-toggle', { id: b.id, enabled: e.target.checked }));
+      el.querySelector('.remove').addEventListener('click', () => { if (confirm(`${b.username} silinsin mi?`)) socket.emit('bot-remove', b.id); });
+      botsEl.appendChild(el);
+      return el;
+    }
+
+    function update(b) {
+      const el = card(b);
+      el.querySelector('.name').textContent = b.username;
+      el.querySelector('.addr').textContent = `${b.host}:${b.port}`;
+      el.querySelector('.mode').textContent = b.actionType === 'jump' ? 'Zıplama + dönme' : 'Vurma + dönme';
+      el.querySelector('input').checked = b.enabled;
+      const badge = el.querySelector('.badge');
+      badge.textContent = b.status;
+      badge.className = 'badge' + (b.status === 'Bağlandı' ? ' online' : b.enabled ? ' wait' : '');
+      el.querySelector('.uptime').textContent = fmt(b.uptime || 0);
+      emptyEl.style.display = botsEl.querySelector('article') ? 'none' : 'block';
+    }
+
+    function addLine(id, line) {
+      const c = document.querySelector(`#card-${id} .console`);
+      if (!c) return;
+      const stick = c.scrollTop + c.clientHeight >= c.scrollHeight - 8;
+      c.append(line + '\n');
+      if (stick) c.scrollTop = c.scrollHeight;
+    }
+
+    socket.on('connect', () => { $('conn').textContent = 'Bağlı'; $('conn').className = 'ok'; });
+    socket.on('disconnect', () => { $('conn').textContent = 'Bağlantı koptu'; $('conn').className = ''; });
+    socket.on('state', ({ bots, logs }) => {
+      botsEl.querySelectorAll('article').forEach((a) => a.remove());
+      bots.forEach((b) => { update(b); (logs[b.id] || []).forEach((l) => addLine(b.id, l)); });
+      emptyEl.style.display = bots.length ? 'none' : 'block';
+    });
+    socket.on('bot', update);
+    socket.on('log', ({ id, line }) => addLine(id, line));
+    socket.on('bot-removed', (id) => { $('card-' + id)?.remove(); emptyEl.style.display = botsEl.querySelector('article') ? 'none' : 'block'; });
+    socket.on('uptimes', (map) => { for (const id in map) { const u = document.querySelector(`#card-${id} .uptime`); if (u) u.textContent = fmt(map[id]); } });
+    socket.on('error-msg', (m) => { $('toast').textContent = m; });
+
+    $('add-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      $('toast').textContent = '';
+      socket.emit('bot-add', { host: $('host').value, port: $('port').value, username: $('username').value, password: $('password').value, actionType: $('actionType').value });
+      e.target.reset(); $('port').value = '25565';
+    });
+
+    const isApp = navigator.userAgent.includes('Electron');
+    $('where').textContent = isApp ? `Uygulama modu — web arayüzü: ${location.origin}` : `Web modu — ${location.origin}`;
+    $('open-web').textContent = isApp ? "Web'de aç" : 'Yeni sekmede aç';
+    $('open-web').addEventListener('click', () => window.open(location.origin, '_blank'));
+  </script>
+</body>
+</html>
