@@ -8,6 +8,6 @@
 Sunucu listesi kalıcıdır (`~/.config/mc-afk-panel/bots.json`, web modunda `./data/bots.json`).
 Aç/kapa anahtarı durumu da kaydedilir: uygulamayı açtığında "açık" olanlar otomatik bağlanır.
 ![Panel Görseli](./image.png)
-#not
+# NOT
 
 yazılımcı degilseniz veya ugrasmak istemiyorsanız releases den derlenmis doysyaları idirebilirsiniz
