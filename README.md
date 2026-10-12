@@ -10,4 +10,4 @@ Aç/kapa anahtarı durumu da kaydedilir: uygulamayı açtığında "açık" olan
 ![Panel Görseli](./image.png)
 # NOT
 
-yazılımcı degilseniz veya ugrasmak istemiyorsanız releases den derlenmis doysyaları idirebilirsiniz
+yazılımcı degilseniz veya ugrasmak istemiyorsanız releases den derlenmis çalışmaya hazır doysyaları indirebilirsiniz
